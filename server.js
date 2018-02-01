@@ -9,6 +9,11 @@ const http = require('http');
 // Import the fs library (to get the file system)
 const fs = require('fs');
 
+/** @function serveFile
+ * Serves the specified file with the provided response object
+ * @param {string} path - specifies the file path to read
+ * @param {http.serverResponse} res - the http response object
+ */
 function serveFile(path, res) {
     fs.readFile(path, function(err, data) {
         if(err) {
@@ -22,7 +27,13 @@ function serveFile(path, res) {
     })
 }
 
+/** @function handleRequest
+ * Request handler
+ * @param {http.ClientRequest} req - the http request object
+ * @param {http.ServerResponse} res - the http response object
+ */
 function handleRequest(req, res) {
+    // Map request urls for files
     switch(req.url) {
         case '/':
         case '/openhouse.html':
