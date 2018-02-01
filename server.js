@@ -9,6 +9,29 @@ const http = require('http');
 // Import the fs library (to get the file system)
 const fs = require('fs');
 
+/** @function serveIndex
+ * Serves the list of files in the specified directory
+ * @param {string} path - the directory to find a list of files for
+ * @param {http.serverReponse} res - the http response object
+ */
+function serveIndex(path, res) {
+    fs.readdir(path, function(err, files) {
+        if(err) {
+            console.log(err);
+            res.statusCode = 500;
+            res.end("Server Error");
+        }
+
+        var html = "<p>Index of " + path + "</p>";
+        html += "<ul>";
+        html += files.map(function(item) {
+            return "<li><a href='" + item + "'>" + item + "</a></li>";
+        }).join("");
+        html += "</ul>";
+        res.end(html);
+    })
+}
+
 /** @function serveFile
  * Serves the specified file with the provided response object
  * @param {string} path - specifies the file path to read
@@ -36,6 +59,7 @@ function handleRequest(req, res) {
     // Map request urls for files
     switch(req.url) {
         case '/':
+            serveIndex('public', res);
         case '/openhouse.html':
             serveFile('public/openhouse.html', res);
             break;
