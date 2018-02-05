@@ -57,11 +57,17 @@ function serveFile(path, res) {
  */
 function handleRequest(req, res) {
     // Map request urls for files
-    switch(req.url) {
+    if(req.url == '/') {
+        serveIndex('public', res);
+    } else {
+        serveFile('public/' + req.url, res);
+    }
+
+    /*switch(req.url) {
         case '/':
             serveIndex('public', res);
         case '/openhouse.html':
-            serveFile('public/openhouse.html', res);
+            serveFile('public/' + req.url, res);
             break;
         case '/openhouse.css':
             serveFile('public/openhouse.css', res);
@@ -72,7 +78,7 @@ function handleRequest(req, res) {
         default:
             res.statusCode = 404;
             res.end("File Not Found");
-    }
+    }*/
 }
 
 // Create the web server
