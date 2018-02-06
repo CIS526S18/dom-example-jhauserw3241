@@ -9,12 +9,24 @@ const http = require('http');
 // Import the fs library (to get the file system)
 const fs = require('fs');
 
+/** @function replaceAll
+ * Replaces all instances of a substring in a string
+ * @param {string} str - a string
+ * @param {string} find - a substring to find
+ * @param {string} replace - the string to replace the substring with
+ * @returns {string} - the updated string
+ */
+function replaceAll(str, find, replace) {
+    return str.replace(new RegExp(find, 'g'), replace);
+}
+
 /** @function serveIndex
  * Serves the list of files in the specified directory
  * @param {string} path - the directory to find a list of files for
  * @param {http.serverReponse} res - the http response object
  */
 function serveIndex(path, res) {
+    var newPath = replaceAll(path, 'public/', '');
     fs.readdir(path, function(err, files) {
         if(err) {
             console.log(err);
@@ -25,7 +37,7 @@ function serveIndex(path, res) {
         var html = "<p>Index of " + path + "</p>";
         html += "<ul>";
         html += files.map(function(item) {
-            return "<li><a href='" + item + "'>" + item + "</a></li>";
+            return "<li><a href='" + newPath + item + "'>" + item + "</a></li>";
         }).join("");
         html += "</ul>";
         res.end(html);
@@ -57,28 +69,24 @@ function serveFile(path, res) {
  */
 function handleRequest(req, res) {
     // Map request urls for files
-    if(req.url == '/') {
-        serveIndex('public', res);
-    } else {
-        serveFile('public/' + req.url, res);
-    }
-
-    /*switch(req.url) {
-        case '/':
-            serveIndex('public', res);
-        case '/openhouse.html':
-            serveFile('public/' + req.url, res);
-            break;
-        case '/openhouse.css':
-            serveFile('public/openhouse.css', res);
-            break;
-        case '/openhouse.js':
-            serveFile('public/openhouse.js', res);
-            break;
-        default:
+    var path = 'public' + req.url
+    fs.exists(path, function(exists) {
+        if(exists) {
+            fs.stat(path, function(err, stats) {
+                if (stats.isDirectory()) {
+                    serveIndex(path + '/', res);
+                } else if (stats.isFile()) {
+                    serveFile(path, res);
+                } else {
+                    res.statusCode = 404;
+                    res.end("File Not Found");
+                }
+            });
+        } else {
             res.statusCode = 404;
             res.end("File Not Found");
-    }*/
+        }
+    });
 }
 
 // Create the web server
