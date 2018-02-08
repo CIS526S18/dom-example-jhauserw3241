@@ -8,6 +8,7 @@ const http = require('http');
 
 // Import the fs library (to get the file system)
 const fs = require('fs');
+const path = require('path');
 
 /** @function replaceAll
  * Replaces all instances of a substring in a string
@@ -22,22 +23,23 @@ function replaceAll(str, find, replace) {
 
 /** @function serveIndex
  * Serves the list of files in the specified directory
- * @param {string} path - the directory to find a list of files for
+ * @param {string} virtualPath - specifies the path to find the file at without the base directory
  * @param {http.serverReponse} res - the http response object
  */
-function serveIndex(path, res) {
-    var newPath = replaceAll(path, 'public/', '');
-    fs.readdir(path, function(err, files) {
+function serveIndex(virtualPath, res) {
+    var filePath = path.join('public', virtualPath);
+    fs.readdir(filePath, function(err, files) {
         if(err) {
             console.log(err);
             res.statusCode = 500;
             res.end("Server Error");
         }
 
-        var html = "<p>Index of " + path + "</p>";
+        var html = "<p>Index of " + filePath + "</p>";
         html += "<ul>";
         html += files.map(function(item) {
-            return "<li><a href='" + newPath + item + "'>" + item + "</a></li>";
+            var newFilePath = path.join(virtualPath, item);
+            return "<li><a href='" + newFilePath + "'>" + item + "</a></li>";
         }).join("");
         html += "</ul>";
         res.end(html);
@@ -46,11 +48,12 @@ function serveIndex(path, res) {
 
 /** @function serveFile
  * Serves the specified file with the provided response object
- * @param {string} path - specifies the file path to read
+ * @param {string} virtualPath - specifies the path to find the file at without the base directory
  * @param {http.serverResponse} res - the http response object
  */
-function serveFile(path, res) {
-    fs.readFile(path, function(err, data) {
+function serveFile(virtualPath, res) {
+    var filePath = path.join('public', virtualPath);
+    fs.readFile(filePath, function(err, data) {
         if(err) {
             console.log(err);
             res.statusCode = 500;
@@ -69,14 +72,21 @@ function serveFile(path, res) {
  */
 function handleRequest(req, res) {
     // Map request urls for files
-    var path = 'public' + req.url
-    fs.exists(path, function(exists) {
+    var virtualPath = req.url
+    var filePath = path.join('public', virtualPath);
+    fs.exists(filePath, function(exists) {
         if(exists) {
-            fs.stat(path, function(err, stats) {
+            fs.stat(filePath, function(err, stats) {
+                if(err) {
+                    console.log(err)
+                    res.statusCode = 404;
+                    res.end("File type could not be found");        
+                }
+
                 if (stats.isDirectory()) {
-                    serveIndex(path + '/', res);
+                    serveIndex(virtualPath, res);
                 } else if (stats.isFile()) {
-                    serveFile(path, res);
+                    serveFile(virtualPath, res);
                 } else {
                     res.statusCode = 404;
                     res.end("File Not Found");
