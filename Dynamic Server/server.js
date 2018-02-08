@@ -1,6 +1,5 @@
 const http = require('http');
 const fs = require('fs');
-const url = require('url');
 const qs = require('querystring');
 
 const PORT=3000;
@@ -19,7 +18,7 @@ function studentList() {
 }
 
 function studentForm() {
-    var form = "<form>"
+    var form = "<form method='POST'>"
     form +=    "    <fieldset>"
     form +=    "        <label for='name'>Student Name</label>"
     form +=    "        <input type='text' name='name' />"
@@ -32,25 +31,29 @@ function studentForm() {
     form +=    "        <label for='description'>Description</label>"
     form +=    "        <textarea type='text' name='description'></textarea>"
     form +=    "    </fieldset>"
-    form +=    "    <input type='submit' value='Submit' />"
+    form +=    "    <input type='submit' value='Add Student' />"
     form +=    "</form>"
 
     return form;
 }
 
 function handleRequest(req, res) {
-    // Load files async here, but adds more overhead
+    if(req.method === "POST") {
+        var body = "";
 
-    var uri = url.parse(req.url);
-    var params = qs.parse(uri.search.slice(1));
-
-    if(params.name) {
-        students.push({
-            name: escapeHtml(params.name),
-            eid: escapeHtml(params.eid),
-            description: escapeHtml(params.description)
+        req.on('data', function(data) {
+            body += data;
         });
-        fs.writeFile('students.json', JSON.stringify(students));
+        req.on('end', function() {
+            student = qs.parse(body)
+
+            students.push({
+                name: escapeHtml(student.name),
+                eid: escapeHtml(student.eid),
+                description: escapeHtml(student.description)
+            });
+            fs.writeFile('students.json', JSON.stringify(students));
+        });
     }
 
     var html = "<!doctype html>";
