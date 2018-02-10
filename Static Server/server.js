@@ -84,7 +84,13 @@ function handleRequest(req, res) {
                 }
 
                 if (stats.isDirectory()) {
-                    serveIndex(virtualPath, res);
+                    fs.exists(path.join(filePath, 'index.html'), function(exists) {
+                        if(exists) {
+                            serveFile(path.join(virtualPath, 'index.html'), res);
+                        } else {
+                            serveIndex(virtualPath, res);
+                        }
+                    });
                 } else if (stats.isFile()) {
                     serveFile(virtualPath, res);
                 } else {
