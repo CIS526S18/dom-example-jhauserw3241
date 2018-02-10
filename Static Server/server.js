@@ -60,7 +60,18 @@ function serveFile(virtualPath, res) {
             res.end("Server Error: Could not read file");
             return;
         }
-        
+
+        var type = virtualPath.split('.').pop()
+        if( (type == "html") ||
+            (type == "css") || 
+            (type == "js")) {
+            type = "text/" + type
+        } else if ( (type == "jpeg") ||
+                    (type == "png") ||
+                    (type == "gif")) {
+            type = "image/" + type
+        }
+        res.setHeader('Content-Type', type)
         res.end(data);
     })
 }
