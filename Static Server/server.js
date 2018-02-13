@@ -10,6 +10,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
+const ROOT_DIR = "public";
+
 /** @function replaceAll
  * Replaces all instances of a substring in a string
  * @param {string} str - a string
@@ -27,7 +29,7 @@ function replaceAll(str, find, replace) {
  * @param {http.serverReponse} res - the http response object
  */
 function serveIndex(virtualPath, res) {
-    var filePath = path.join('public', virtualPath);
+    var filePath = path.join(ROOT_DIR, virtualPath);
     fs.readdir(filePath, function(err, files) {
         if(err) {
             console.log(err);
@@ -52,7 +54,7 @@ function serveIndex(virtualPath, res) {
  * @param {http.serverResponse} res - the http response object
  */
 function serveFile(virtualPath, res) {
-    var filePath = path.join('public', virtualPath);
+    var filePath = path.join(ROOT_DIR, virtualPath);
     fs.readFile(filePath, function(err, data) {
         if(err) {
             console.log(err);
@@ -84,7 +86,7 @@ function serveFile(virtualPath, res) {
 function handleRequest(req, res) {
     // Map request urls for files
     var virtualPath = req.url
-    var filePath = path.join('public', virtualPath);
+    var filePath = path.join(ROOT_DIR, virtualPath);
     fs.exists(filePath, function(exists) {
         if(exists) {
             fs.stat(filePath, function(err, stats) {
